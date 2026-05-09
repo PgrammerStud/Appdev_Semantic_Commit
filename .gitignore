@@ -35,6 +35,15 @@ local.properties
 !debug.keystore
 .kotlin/
 
+# Sensitive files
+gradle.properties
+google-services.json        # ← added
+**/google-services.json     # ← catches nested paths (e.g. android/app/)
+
+.env
+.env.*
+!.env.example
+
 # node.js
 #
 node_modules/
