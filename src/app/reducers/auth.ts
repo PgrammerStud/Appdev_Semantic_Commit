@@ -10,6 +10,9 @@ import {
   USER_REGISTER_REQUEST,
   USER_REGISTER_RESET,
   USER_LOGOUT,
+  GOOGLE_LOGIN,
+  GOOGLE_LOGIN_COMPLETED,
+  GOOGLE_LOGIN_ERROR,
 } from '../action';
 
 export interface AuthAction {
@@ -24,6 +27,14 @@ export interface AuthState {
   errorMessage: string | null;
   isLoggedIn: boolean;
   isRegistered: boolean;
+  jwtToken?: string;             // ✅ renamed
+  user?: {
+    id: string;                  // ✅ backend field
+    email: string;
+    name?: string;               // ✅ backend field
+    roles?: string[];            // ✅ backend field
+    photo?: string;              // ✅ backend field
+  };
 }
 
 const INITIAL_STATE: AuthState = {
@@ -105,6 +116,38 @@ export default function reducer(state = INITIAL_STATE, action: AuthAction): Auth
     case USER_LOGOUT:
       return INITIAL_STATE;
 
+    case GOOGLE_LOGIN:
+      return {
+        ...state,
+        isLoading: true,
+        isError: false,
+        errorMessage: null,
+      };
+
+    case GOOGLE_LOGIN_COMPLETED:
+  return {
+    ...state,
+    data: action.payload,
+    isLoading: false,
+    isError: false,
+    isLoggedIn: true,
+    errorMessage: null,
+    jwtToken: action.payload.jwtToken,            // ✅
+    user: action.payload.user,
+  };
+
+    case GOOGLE_LOGIN_ERROR:
+  return {
+    ...state,
+    data: null,
+    isLoading: false,
+    isError: true,
+    isLoggedIn: false,
+    errorMessage: action.payload,
+    jwtToken: undefined,        // ✅
+    user: undefined,
+  };
+
     default:
       return state;
   }
@@ -130,4 +173,19 @@ export const resetRegister = () => ({
 
 export const userLogout = () => ({
   type: USER_LOGOUT,
+});
+
+export const googleLogin = (payload: any) => ({
+  type: GOOGLE_LOGIN,
+  payload,
+});
+
+export const googleLoginCompleted = (payload: any) => ({
+  type: GOOGLE_LOGIN_COMPLETED,
+  payload,
+});
+
+export const googleLoginError = (error: string) => ({
+  type: GOOGLE_LOGIN_ERROR,
+  payload: error,
 });

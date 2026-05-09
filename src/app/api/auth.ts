@@ -1,4 +1,4 @@
-const BASE_URL = 'http://192.168.43.43:8000/api';
+const BASE_URL = 'http://192.168.1.148:8000/api';
 const options = {
   headers: {
     Accept: 'application/json',
