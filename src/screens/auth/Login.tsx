@@ -16,8 +16,8 @@ import { useNavigation } from '@react-navigation/native';
 import CustomButton from '../../components/CustomButton';
 import CustomTextInput from '../../components/CustomTextInput';
 import { ROUTES } from '../../utils';
-import { userLogin, resetLogin } from '../../app/reducers/auth';
-
+import { userLogin, resetLogin, googleLoginCompleted, googleLoginError } from '../../app/reducers/auth';
+import { signInWithGoogle, setJwtToken } from '../../services/authService';
 // ─── Brand Palette ───────────────────────────────────────────────
 const AMBER        = '#dd8928';
 const AMBER_DARK   = '#b56c18';
@@ -43,6 +43,7 @@ const Login: React.FC = () => {
   const [usernameFocused, setUsernameFocused] = useState(false);
   // const [emailFocused, setEmailFocused] = useState(false);
   const [passFocused, setPassFocused]   = useState(false);
+  const [googleLoading, setGoogleLoading] = useState(false);
 
   const navigation = useNavigation();
   const dispatch = useDispatch();
@@ -71,6 +72,36 @@ const Login: React.FC = () => {
       return;
     }
     dispatch(userLogin({ username, password }));
+  };
+
+  const handleGoogleSignIn = async () => {
+    try {
+      setGoogleLoading(true);
+      const result = await signInWithGoogle();
+
+      if (result.success && result.user && result.jwtToken) {
+  console.log('✓ Google Sign-In successful:', result.user.email);
+  
+  // Line 88 fix - use jwtToken not firebaseToken (backend returns jwtToken)
+ setJwtToken(result.jwtToken ?? '');   // ← ADD this line
+dispatch(googleLoginCompleted({
+  jwtToken: result.jwtToken ?? '',    // ← rename this
+  user: result.user,
+}));
+  // Line 92 fix - use name not displayName (AuthUser has name not displayName)
+  Alert.alert('Success', `Welcome, ${result.user.name ?? result.user.email ?? 'User'}!`);
+} else {
+        console.error('Google Sign-In failed:', result.error);
+        dispatch(googleLoginError(result.error || 'Failed to sign in with Google'));
+        Alert.alert('Sign-In Failed', result.error || 'Failed to sign in with Google');
+      }
+    } catch (error: any) {
+      console.error('✗ Google Sign-In error:', error);
+      dispatch(googleLoginError(error.message || 'An unexpected error occurred'));
+      Alert.alert('Error', error.message || 'An unexpected error occurred');
+    } finally {
+      setGoogleLoading(false);
+    }
   };
 
   return (
@@ -214,9 +245,20 @@ const Login: React.FC = () => {
 
           {/* ── Social ── */}
           <View style={s.socialRow}>
-            <TouchableOpacity style={s.socialBtn}>
-              <Text style={s.socialBtnIcon}>G</Text>
-              <Text style={s.socialBtnText}>Google</Text>
+            <TouchableOpacity 
+              style={[s.socialBtn, googleLoading && s.socialBtnDisabled]}
+              onPress={handleGoogleSignIn}
+              disabled={googleLoading}
+              activeOpacity={0.7}
+            >
+              {googleLoading ? (
+                <ActivityIndicator size="small" color={AMBER} />
+              ) : (
+                <>
+                  <Text style={s.socialBtnIcon}>G</Text>
+                  <Text style={s.socialBtnText}>Google</Text>
+                </>
+              )}
             </TouchableOpacity>
             <TouchableOpacity style={[s.socialBtn, s.socialBtnFB]}>
               <Text style={[s.socialBtnIcon, { color: '#1877F2' }]}>f</Text>
@@ -542,6 +584,9 @@ const s = StyleSheet.create({
     shadowOpacity: 0.06,
     shadowRadius: 6,
     elevation: 2,
+  },
+  socialBtnDisabled: {
+    opacity: 0.6,
   },
   socialBtnFB: {},
   socialBtnIcon: {
