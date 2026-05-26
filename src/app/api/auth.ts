@@ -1,4 +1,4 @@
-const BASE_URL = 'http://192.168.1.148:8000/api';
+const BASE_URL = 'https://webbakery-production.up.railway.app/api';
 const options = {
   headers: {
     Accept: 'application/json',

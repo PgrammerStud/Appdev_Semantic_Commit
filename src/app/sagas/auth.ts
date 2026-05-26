@@ -1,5 +1,6 @@
 import { call, put, takeEvery } from 'redux-saga/effects';
 import { authLogin, authRegister } from '../api/auth';
+import { setAuthToken } from '../../services/productService'; // ← add import
 
 import {
   USER_LOGIN,
@@ -16,6 +17,7 @@ export function* userLoginAsync(action: any): any {
   yield put({ type: USER_LOGIN_REQUEST });
   try {
     const response = yield call(authLogin, action.payload);
+    setAuthToken(response?.token);
     yield put({ type: USER_LOGIN_COMPLETED, payload: response });
   } catch (error) {
     // log the full error so we can inspect network/server problems

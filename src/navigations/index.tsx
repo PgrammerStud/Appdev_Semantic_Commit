@@ -1,5 +1,4 @@
 import React, { useEffect } from 'react';
-import { NavigationContainer } from '@react-navigation/native';
 import { Platform, StatusBar, useColorScheme } from 'react-native';
 import { useSelector } from 'react-redux';
 
@@ -14,15 +13,10 @@ const Navigation: React.FC = () => {
     if (Platform.OS === 'android') {
       StatusBar.setBackgroundColor('#000000', true);
     }
-
     StatusBar.setBarStyle('dark-content', true);
   }, [isDarkMode]);
 
-  return (
-    <NavigationContainer>
-      {isLoggedIn ? <MainNav /> : <AuthNav />}
-    </NavigationContainer>
-  );
+  return isLoggedIn ? <MainNav /> : <AuthNav />;
 };
 
 export default Navigation;

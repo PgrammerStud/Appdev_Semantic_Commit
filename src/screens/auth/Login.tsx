@@ -10,6 +10,7 @@ import {
   View,
   ActivityIndicator,
 } from 'react-native';
+import { Image } from 'react-native';
 
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
@@ -132,22 +133,26 @@ dispatch(googleLoginCompleted({
         </View>
 
         {/* ── Hero Badge ── */}
-        <View style={s.heroBadge}>
-          <View style={s.badgeGlow} />
-          <View style={s.badgeInner}>
-            <Text style={s.badgeEmoji}>🥐</Text>
-          </View>
-        </View>
+               <View style={s.heroBadge}>
+  <View style={s.badgeGlow} />
+  <Image
+    source={require('../../assets/images/logo.png')}
+    style={s.logoImage}
+    resizeMode="contain"
+  />
+</View>
 
         {/* ── Brand ── */}
         <View style={s.brandWrap}>
-          <Text style={s.brandName}>Catalbas</Text>
+          {/* <Text style={s.brandName}>Catalbas</Text> */}
           <View style={s.brandSubRow}>
             <View style={s.brandLine} />
-            <Text style={s.brandSub}>BAKERY</Text>
+            {/* <Text style={s.brandSub}>BAKERY</Text> */}
             <View style={s.brandLine} />
           </View>
           <Text style={s.tagline}>Baked daily · Delivered with love</Text>
+          <Text style={s.tagline}>Every purchase helps support local animal shelters</Text>
+
         </View>
 
         {/* ── Card ── */}
@@ -335,33 +340,21 @@ const s = StyleSheet.create({
 
   crumb: { position: 'absolute', color: AMBER },
 
-  // Hero badge
   heroBadge: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 18,
-  },
-  badgeGlow: {
-    position: 'absolute',
-    width: 88, height: 88,
-    borderRadius: 44,
-    backgroundColor: AMBER_GLOW,
-  },
-  badgeInner: {
-    width: 68, height: 68,
-    borderRadius: 22,
-    backgroundColor: WHITE,
-    borderWidth: 2.5,
-    borderColor: CREAM_DARK,
-    alignItems: 'center',
-    justifyContent: 'center',
-    shadowColor: AMBER_DARK,
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.25,
-    shadowRadius: 14,
-    elevation: 8,
-  },
-  badgeEmoji: { fontSize: 30 },
+  alignItems: 'center',
+  justifyContent: 'center',
+  marginBottom: 18,
+},
+badgeGlow: {
+  position: 'absolute',
+  width: 150, height: 150,
+  borderRadius: 80,
+  backgroundColor: AMBER_GLOW,
+},
+logoImage: {
+  width: 150,
+  height: 100,
+},
 
   // Brand
   brandWrap: { alignItems: 'center', marginBottom: 24 },

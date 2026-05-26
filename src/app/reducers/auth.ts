@@ -15,6 +15,9 @@ import {
   GOOGLE_LOGIN_ERROR,
 } from '../action';
 
+import { Role } from '../../types/roles';
+import { getPrimaryRole } from '../../utils/permissions';
+
 export interface AuthAction {
   type: string;
   payload?: any;
@@ -27,7 +30,8 @@ export interface AuthState {
   errorMessage: string | null;
   isLoggedIn: boolean;
   isRegistered: boolean;
-  jwtToken?: string;             // ✅ renamed
+  jwtToken?: string;   
+  role?: Role;          
   user?: {
     id: string;                  // ✅ backend field
     email: string;
@@ -66,6 +70,9 @@ export default function reducer(state = INITIAL_STATE, action: AuthAction): Auth
         isError: false,
         isLoggedIn: true,
         errorMessage: null,
+        jwtToken: action.payload?.token, // ← add this
+        user: action.payload?.user,   
+        role: getPrimaryRole(action.payload?.user?.roles),                                 // ← add this
       };
 
     case USER_LOGIN_ERROR:
@@ -134,6 +141,7 @@ export default function reducer(state = INITIAL_STATE, action: AuthAction): Auth
     errorMessage: null,
     jwtToken: action.payload.jwtToken,            // ✅
     user: action.payload.user,
+    role: getPrimaryRole(action.payload.user?.roles),    // ← ADD THIS
   };
 
     case GOOGLE_LOGIN_ERROR:

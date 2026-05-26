@@ -2,7 +2,7 @@ import { GoogleSignin } from '@react-native-google-signin/google-signin';
 import auth from '@react-native-firebase/auth';
 import axios, { AxiosInstance, AxiosError, InternalAxiosRequestConfig } from 'axios';
 import Config from 'react-native-config';
-
+import { setAuthToken } from './productService';
 // Types
 export interface AuthUser {
   id: string;
@@ -25,7 +25,7 @@ export interface SignInResult {
 }
 
 // Constants
-const API_BASE_URL = __DEV__ ? 'http://192.168.1.148:8000' : 'https://api.yourapp.com';
+const API_BASE_URL = 'https://webbakery-production.up.railway.app';
 
 // Track if GoogleSignin has been configured
 
@@ -41,6 +41,7 @@ let apiClient: AxiosInstance | null = null;
  */
 export const setJwtToken = (token: string | null): void => {
   currentJwtToken = token;
+   setAuthToken(token ?? ''); // ← add only this line
   console.log(currentJwtToken ? '✓ JWT token updated' : '✓ JWT token cleared');
   // Reset apiClient so it picks up the new token on next request
   apiClient = null;
@@ -58,6 +59,7 @@ const initializeApiClient = (): AxiosInstance => {
     baseURL: API_BASE_URL,
     timeout: 10000,
   });
+  
 
   // Add request interceptor to attach JWT token
   apiClient.interceptors.request.use(
@@ -156,6 +158,7 @@ export const signInWithGoogle = async (): Promise<SignInResult> => {
     const userCredential = await auth().signInWithCredential(googleCredential);
 
     const user = userCredential.user;
+    console.log('🔑 GOOGLE ID TOKEN:', idToken);
 
     console.log('✓ Firebase login success:', user.email);
 
@@ -170,6 +173,7 @@ export const signInWithGoogle = async (): Promise<SignInResult> => {
     const jwtToken = backendResponse.token;
     const backendUser = backendResponse.user;
 
+    // setAuthToken(jwtToken); // ← add this line here
     console.log('✓ Sign-in completed successfully');
 
     // Return data - Redux reducer will handle storing it
@@ -192,35 +196,36 @@ export const signInWithGoogle = async (): Promise<SignInResult> => {
  * Sign out from Firebase + Google
  * Redux reducer will handle clearing auth data from state
  */
-export const signOutUser = async (): Promise<{ success: boolean; error?: string }> => {
+export const signOutUser = async (jwtToken?: string): Promise<{ success: boolean; error?: string }> => {
   try {
     console.log('🔄 Starting sign out...');
 
-    // Firebase sign out
-    console.log('⚙️ Signing out from Firebase...');
+    // ✅ Use passed token OR fall back to currentJwtToken
+    const tokenToUse = jwtToken || currentJwtToken;
+
+    if (tokenToUse) {
+      try {
+        await axios.post(
+          `${API_BASE_URL}/api/auth/logout`,
+          {},
+          { headers: { Authorization: `Bearer ${tokenToUse}` } }
+        );
+        console.log('✓ Backend logout logged');
+      } catch (e: any) {
+        console.warn('⚠️ Backend logout failed:', e?.response?.status, e?.response?.data);
+      }
+    }
+
     await auth().signOut();
-    console.log('✓ Firebase sign out complete');
-
-    // Google sign out
-    console.log('⚙️ Signing out from Google...');
     await GoogleSignin.signOut();
-    console.log('✓ Google sign out complete');
-
-    // Clear JWT token from memory
     setJwtToken(null);
 
     console.log('✓ User signed out completely');
+    return { success: true };
 
-    return {
-      success: true,
-    };
   } catch (error: any) {
     console.error('✗ Sign out error:', error);
-
-    return {
-      success: false,
-      error: error.message || 'Sign out failed',
-    };
+    return { success: false, error: error.message || 'Sign out failed' };
   }
 };
 

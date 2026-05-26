@@ -1,3 +1,4 @@
-module.exports = {
+ module.exports = {
   preset: 'react-native',
 };
+k
